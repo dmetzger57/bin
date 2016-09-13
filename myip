@@ -1,0 +1,13 @@
+IPADDR=`ifconfig en0 2>/dev/null | grep "inet " | cut -d' ' -f2`
+if [ "$IPADDR " != " " ]
+then
+    echo "$IPADDR"
+    exit
+fi
+
+IPADDR=`ifconfig eth0 2>/dev/null | grep "inet addr:"|cut -d':' -f2|cut -d' ' -f1`
+if [ "$IPADDR " != " " ]
+then
+    echo "$IPADDR"
+    exit
+fi

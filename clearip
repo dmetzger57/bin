@@ -1,0 +1,9 @@
+if [ $# -ne 1 ]
+then
+    echo -e "IP Address To Clear: \c"
+    read IP
+else
+    IP=${1}
+fi
+
+sed -i -e "/${IP}/d" ${HOME}/.ssh/known_hosts

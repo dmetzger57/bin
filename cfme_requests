@@ -1,0 +1,1 @@
+clear;egrep "Started GET | Redirected to http | Completed" production.log | grep -v /assets/patternfly | grep -v "/assets/miq_timeline.css"

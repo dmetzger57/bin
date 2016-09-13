@@ -1,0 +1,3 @@
+#!/bin/bash
+
+subscription-manager register --username dmetzger@redhat.com --password L0ck3dout! --auto-attach
