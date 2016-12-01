@@ -1,0 +1,32 @@
+if [ $# -eq 1 ]
+then
+    DbName=$1
+else
+    echo -e "Database to import: \c"
+    read DbName
+fi
+
+if [ ! -f "${DbName}" ]
+then
+    echo "DB Dump Not Found: [${DbName}]"
+fi
+
+echo "Stopping EVM Server"
+systemctl stop evmserverd
+
+echo "Dropping VMDB_PRODUCTION"
+dropdb vmdb_production
+
+echo "Creating VMDB_PRODUCTION"
+createdb vmdb_production
+
+echo "Restoring ${DbName}"
+pg_restore -c -C -v -U root -d vmdb_production -j 6 ${DbName} 2>&1 | tee pg_restore.out
+
+cd /var/www/miq/vmdb
+
+echo "Executing FIX_AUTH"
+bundle exec tools/fix_auth.rb --v2 --invalid bogus 2>&1 | tee fix_auth.out
+
+echo "Migrating VMDB"
+bundle exec bin/update
