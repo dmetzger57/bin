@@ -30,7 +30,7 @@ do
   echo "${P} apache"
 done >>${PidList}
 
-./${SmemOutput} -c "pid pss rss uss vss swap name" | sed -e 's/^  *//' -e 's/  */ /g' >${SmemOutput}
+./smem -c "pid pss rss uss vss swap name" | sed -e 's/^  *//' -e 's/  */ /g' >${SmemOutput}
 
 echo "NAME, PID, PSS, RSS, USS, VSS, SWAP"
 cat ${PidList} | while read PID NAME
