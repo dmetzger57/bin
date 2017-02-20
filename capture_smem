@@ -1,0 +1,44 @@
+#!/bin/bash
+
+###
+# TODO:
+#       1) Add ability to specify which processes/workers to collect on
+###
+
+###
+# Capture PSS data for:
+#    MIQ Server
+#    MIQ Workers
+#    Puma processes
+#    Apache processes
+###
+
+PidList=/tmp/pidlist.txt
+SmemOutput=/tmp/smem.out
+
+ps -ef | grep "MIQ Server" | grep -v grep | sed -e 's/  */ /g' | cut -d' ' -f2,9 >${PidList}
+
+ps -ef | grep " MIQ: " | grep -v grep | sed -e 's/  */ /g' | cut -d ' ' -f2,9 >>${PidList}
+
+ps -ef | grep puma | grep -v grep | sed -e 's/  */ /g' | cut -d' ' -f2 | while read P
+do
+  echo "${P} puma"
+done >>${PidList}
+
+ps -ef | grep apache | grep -v grep | sed -e 's/  */ /g' | cut -d' ' -f2 | while read P
+do
+  echo "${P} apache"
+done >>${PidList}
+
+./${SmemOutput} -c "pid pss rss uss vss swap name" | sed -e 's/^  *//' -e 's/  */ /g' >${SmemOutput}
+
+echo "NAME, PID, PSS, RSS, USS, VSS, SWAP"
+cat ${PidList} | while read PID NAME
+do
+	grep "^${PID} " ${SmemOutput} | while read C1 C2 C3 C4 C5 C6 C7
+	do
+		echo "${NAME}, ${C1}, ${C2}, ${C3}, ${C4}, ${C5}, ${C6}"
+	done
+done
+
+rm ${PidList} ${SmemOutput}
