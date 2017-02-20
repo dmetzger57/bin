@@ -1,0 +1,26 @@
+echo -e "Database Dump: \c"
+read DbDump
+
+systemctl stop evmserverd
+
+dropdb -U postgres vmdb_production   
+
+createdb -U postgres -O root -D pg_default -l en_US.UTF-8 -E UTF8 vmdb_production  
+
+pg_restore -v -U root -j 4 -d vmdb_production "${DbDump}"  
+
+cd /var/www/miq/vmdb  
+
+bundle exec tools/fix_auth.rb --v2 --invalid bogus  
+
+bin/rake db:migrate
+
+bin/rails r "User.find_by_userid('admin').update_attributes(:password => 'smartvm')"
+
+# rm -f /var/www/miq/vmdb/GUID
+
+rm -f /var/www/miq/vmdb/REGION
+
+systemctl start evmserverd
+
+# psql vmdb_production -c "select id, region, created_at, guid from miq_regions;"  
