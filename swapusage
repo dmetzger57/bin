@@ -19,10 +19,9 @@ for swappid in $(grep -l Swap /proc/[1-9]*/smaps ); do
         fi
 done
 
-if [ ! -s /tmp/results ]
+if [ -s /tmp/results ]
 then
-  echo "top running swap using processes:"
   sort -nr /tmp/results
+else
+  echo "No Swap Usage"
 fi
-
-rm /tmp/results
