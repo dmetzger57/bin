@@ -1,0 +1,21 @@
+#!/bin/sh
+
+FNAME=$*
+
+ls *jpg *JPG 2>/dev/null | while read P
+do
+	Y=`mdls "${P}" | grep kMDItemContentCreationDate | cut -d'=' -f2 | cut -d'-' -f1 | sed -e 's/  *//'`
+	if [ "${Y}" == "" ]
+	then
+		echo "${P} Failed"
+		exit 0
+	fi
+
+	if [ ! -d "${Y} - ${FNAME}" ]
+	then
+		echo "mkdir \"${Y} - ${FNAME}\""
+		mkdir "${Y} - ${FNAME}"
+	fi
+	echo "mv \"${P}\" \"${Y} - ${FNAME}\""
+	mv "${P}" "${Y} - ${FNAME}"
+done
