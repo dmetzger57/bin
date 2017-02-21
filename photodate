@@ -1,0 +1,9 @@
+#!/bin/sh
+
+FNAME=$*
+
+ls *jpg *JPG 2>/dev/null | while read P
+do
+	Y=`mdls "${P}" | grep kMDItemContentCreationDate | cut -d'=' -f2 | cut -d'-' -f1 | sed -e 's/  *//'`
+	echo "${Y} ${P}"
+done
