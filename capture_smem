@@ -41,4 +41,4 @@ do
 	done
 done
 
-rm ${PidList} ${SmemOutput}
+rm -f ${PidList} ${SmemOutput}
