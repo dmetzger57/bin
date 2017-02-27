@@ -1,0 +1,82 @@
+#!/bin/sh
+
+###
+# Options
+#
+#    -l: List of procsses (names) that exceeded their threshold
+#        process_name
+#
+#    -w: Report process that exceeded their threshold
+#        date, time, pid, name, pss, threshold
+#
+#    -c: Count of worker threshold exceeded events
+#        number_of_events
+#    -a: Parse all EVM logs (note, this will decompress all evm.logs
+###
+
+###
+# Expects to be run in the same director as the EVM log files
+###
+if [ `ls evm.log* | wc -l` -eq 0 ]
+then
+  echo "No EVM log files present in this directory"
+  exit 1
+fi
+
+OPTIND=1
+ListWorkers=0
+WhenExceeded=0
+ExceededCount=0
+LogFiles="evm.log"
+
+while getopts "h?alwc" opt
+do
+	case "$opt" in
+	h|\?) echo "Usage: $0 [-l] [-c] [w]"
+	      exit 0
+        ;;
+	l)    ListWorkers=1
+        ;;
+  a)    gunzip evm.log*gz >/dev/null 2>/dev/null
+        LogFiles=`ls evm.log*`
+	      ;;
+	w)    WhenExceeded=1
+	      ;;
+	c)    ExceededCount=1
+	      ;;
+	esac
+done
+
+if [ ${ListWorkers} -eq 0 -a ${WhenExceeded} -eq 0 -a ${ExceededCount} -eq 0 ]
+then
+  echo "Please specify either -l, -w or -c"
+  exit 2
+fi
+
+if [ ${ListWorkers} -eq 1 ]
+then
+	grep -i "process memory usage" ${LogFiles} | grep "exceeded limit" | grep "type" | while read L
+	do
+		echo ${L} | sed -e 's/type=>\"/!/' | cut -d'!' -f2 | cut -d'"' -f1
+	done | sort | uniq | grep -v evm_worker_memory_exceeded
+fi
+
+if [ ${WhenExceeded} -eq 1 ]
+then
+	echo "Date, Time, PID, Worker, Size, Threshold"
+	cat ${LogFiles} | grep "WARN.*process memory usage.*exceeded limit.*requesting worker to exit" | while read L
+	do
+		D=`echo "${L}" | cut -c12-21`
+		T=`echo "${L}" | cut -c23-37`
+		P=`echo "${L}" | sed -e 's/PID: \[/!/' | cut -d'!' -f2 | sed -e 's/\]/!/' | cut -d'!' -f1`
+		U=`echo "${L}" | sed -e 's/process memory usage \[/!/' | cut -d'!' -f2 | sed -e 's/\]/!/' | cut -d'!' -f1`
+		M=`echo "${L}" | sed -e 's/exceeded limit \[/!/' | cut -d'!' -f2 | sed -e 's/\]/!/' | cut -d'!' -f1`
+		W=`echo "${L}" | sed -e 's/Worker \[/!/' | cut -d'!' -f2 | sed -e 's/\]/!/' | cut -d'!' -f1`
+		echo "${D}, ${T}, ${P}, ${W}, ${U}, ${M}"
+	done | sort
+fi
+
+if [ ${ExceededCount} -eq 1 ]
+then
+	cat ${LogFiles} | grep "WARN.*process memory usage.*exceeded limit.*requesting worker to exit" | wc -l
+fi
