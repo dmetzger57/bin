@@ -11,6 +11,7 @@ RemoteSystem=""
 RemoteUser="root"
 Interval=300
 Count=1
+TotalCaptures=1
 
 while getopts "h?r:i:c:u:" opt; do
   case "$opt" in
@@ -28,7 +29,7 @@ while getopts "h?r:i:c:u:" opt; do
       Interval=${OPTARG}
       ;;
     c)
-      Count=${OPTARG}
+      TotalCaptures=${OPTARG}
       ;;
   esac
 done
@@ -41,15 +42,15 @@ scp ~/bin/smem ~/bin/capture_smem ~/bin/swapusage ${RemoteUser}@${RemoteSystem}:
 while true
 do
 	T=`date +%C%y%m%d_%H%M%S`
-  echo -e "Capturing Quantum: ${T}\c"
+  echo -e "Capturing Quantum [${Count} of ${TotalCaptures}]: ${T}\c"
 	ssh ${RemoteUser}@${RemoteSystem} ./capture_smem >smem.${T}
 	ssh ${RemoteUser}@${RemoteSystem} ./swapusage >swapusage.${T}
   echo ", complete"
 
-  Count=$((Count - 1))
-  if [ ${Count} -eq 0 ]
+  Count=$((Count + 1))
+  if [ ${Count} -gt ${TotalCaptures} ]
   then
-		ssh ${RemoteUser}@${RemoteSystem} "rm capture_smem swapusage"
+    ssh ${RemoteUser}@${RemoteSystem} "rm capture_smem swapusage"
     ssh ${RemoteUser}@${RemoteSystem} ps auxf >ps-end.txt
     exit 0
   else
