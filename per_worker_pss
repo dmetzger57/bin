@@ -46,8 +46,15 @@ ls smem* | cut -d'.' -f2 | cut -d' ' -f1 | while read T
 do
   echo "${T}"
   TIME=`echo ${T} | cut -d'_' -f2`
-  DAY=`echo ${T} | cut -d'_' -f1`
-  echo "${DAY},${TIME},\c" >>pss.csv
+  HOUR=`echo ${TIME} | cut -c1-2`
+  MINUTE=`echo ${TIME} | cut -c3-4`
+  SECOND=`echo ${TIME} | cut -c5-6`
+  DATE=`echo ${T} | cut -d'_' -f1`
+  YEAR=`echo ${DATE} | cut -c1-4`
+  MONTH=`echo ${DATE} | cut -c5-6`
+  DAY=`echo ${DATE} | cut -c7-8`
+
+  echo "${YEAR}/${MONTH}/${DAY},${HOUR}:${MINUTE}:${SECOND},\c" >>pss.csv
   cat /tmp/process_names_pids.txt | while read N P
   do
     PSS=`grep " ${P}," smem.${T} | sed -e 's/ *//' | cut -d',' -f3`
