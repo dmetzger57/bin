@@ -33,6 +33,10 @@ while getopts "h?r:i:c:u:" opt; do
   esac
 done
 
+scp ${RemoteUser}@${RemoteSystem}:/var/www/miq/vmdb/VERSION .
+ssh ${RemoteUser}@${RemoteSystem} uptime >uptime.txt
+ssh ${RemoteUser}@${RemoteSystem} ps auxf >ps-start.txt
+
 scp ~/bin/smem ~/bin/capture_smem ~/bin/swapusage ${RemoteUser}@${RemoteSystem}:
 while true
 do
@@ -46,6 +50,7 @@ do
   if [ ${Count} -eq 0 ]
   then
 		ssh ${RemoteUser}@${RemoteSystem} "rm capture_smem swapusage"
+    ssh ${RemoteUser}@${RemoteSystem} ps auxf >ps-end.txt
     exit 0
   else
     sleep ${Interval}
