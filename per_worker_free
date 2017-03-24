@@ -1,0 +1,41 @@
+#!/bin/bash
+
+FREE_CSV="../free.csv"
+
+echo "Date, Time, Elapsed, Total, Memory Used, Free, Shared, Buffer, Avalable, Swap Used" >${FREE_CSV}
+
+Elapsed_Time=1
+ls free* | sort | while read F
+do
+
+  echo "${F}"
+
+  DT=`echo ${F} | cut -d'.' -f2`
+  D=`echo ${DT} | cut -d'_' -f1`
+  T=`echo ${DT} | cut -d'_' -f2`
+
+  HOUR=`echo ${T} | cut -c1-2`
+  MINUTE=`echo ${T} | cut -c3-4`
+  SECOND=`echo ${T} | cut -c5-6`
+
+  YEAR=`echo ${D} | cut -c1-4`
+  MONTH=`echo ${D} | cut -c5-6`
+  DAY=`echo ${D} | cut -c7-8`
+
+  echo -e "${YEAR}/${MONTH}/${DAY},${HOUR}:${MINUTE}:${SECOND},${Elapsed_Time},\c" >>${FREE_CSV}
+
+  grep "^Mem:" ${F} | sed -e 's/  */ /g' | while read MEM TOTAL USED FREE SHARED BUFFER AVAILABLE
+  do
+    echo -e "${TOTAL}, ${USED}, ${FREE}, ${SHARED}, ${BUFFER}, ${AVAILABLE}, \c" >>${FREE_CSV}
+  done
+
+  grep "^Swap:" ${F} | sed -e 's/  */ /g' | while read MEM TOTAL USED FREE
+  do
+    echo -e "${USED}" >>${FREE_CSV}
+  done
+
+  Elapsed_Time=$((Elapsed_Time + 1))
+
+done
+
+exit 0

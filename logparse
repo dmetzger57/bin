@@ -1,0 +1,31 @@
+#!/usr/env ruby
+
+require "optparse"
+
+opts = {}
+# pid:object => request_path
+request_stack = {}
+
+OptionParser.new do |opt|
+  opt.banner = "Usage: #{File.basename $0} [options] logfiles..."
+
+  opt.on("-oOUT", "--out=OUTPUT") { |out| opts[:output_file] = out }
+  opt.on("-h",    "--help")       { |out| puts opt; exit }
+end.parse!(ARGV)
+
+opts[:output_file] ||= "production.log.timings"
+
+ARGV.each do |file_arg|
+  Dir["#{file_arg}"].each do |filename|
+    File.open(opts[:output_file], 'a') do |f|
+      File.open(filename).each_line do |line|
+        if match = line.match(/(\d*:[0-9a-f]*)\].*: Started.+\"([^"]*)\"/)
+          request_stack[match[1]] = match[2]
+        elsif match = line.match(/(\d*:[0-9a-f]*)\].*: Completed.+in (\d+)ms/)
+          url = request_stack.delete(match[1])
+          f.puts "'#{url}' #{match[2]}ms"
+        end
+      end
+    end
+  end
+end

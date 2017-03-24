@@ -1,0 +1,4 @@
+cd smem.d
+per_worker_smem
+cd ../free.d
+per_worker_free

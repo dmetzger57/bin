@@ -1,0 +1,8 @@
+for V in 5*
+do
+  for W in apache MiqEmsMetricsProcessorWorker MiqEmsRefreshCoreWorker MiqEventHandler MiqGenericWorker MiqPriorityWorker MiqReplicationWorker MiqReportingWorker MiqScheduleWorker MiqSmartProxyWorker MiqVimBrokerWorker puma Server Vmware::InfraManager::EventCatcher Vmware::InfraManager::MetricsCollectorWorker Vmware::InfraManager::RefreshWorker
+  do
+    C=`grep -c ${W} ${V}/process_names_pids.txt`
+    echo "${W}-${V}-${C}"
+  done
+done
